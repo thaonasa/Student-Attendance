@@ -1,0 +1,61 @@
+import sqlite3
+
+conn = sqlite3.connect('student_attendance.db')
+cursor = conn.cursor()
+
+cursor.execute("PRAGMA foreign_keys = ON;")
+
+# Bảng Sinh Viên
+cursor.execute('''
+CREATE TABLE IF NOT EXISTS Students (
+    student_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    full_name TEXT,
+    date_of_birth TEXT,
+    gender TEXT,
+    class_id INTEGER,
+    email TEXT,
+    phone_number TEXT,
+    photo_path TEXT
+);
+''')
+
+# Bảng Mặt Khuôn Mặt (Embeddings)
+cursor.execute('''
+CREATE TABLE IF NOT EXISTS Face_Embeddings (
+    embedding_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    student_id INTEGER,
+    embedding_vector BLOB,
+    created_at TEXT,
+    FOREIGN KEY (student_id) REFERENCES Students(student_id)
+);
+''')
+
+# Bảng Điểm Danh
+cursor.execute('''
+CREATE TABLE IF NOT EXISTS Attendance (
+    attendance_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    student_id INTEGER,
+    status TEXT,
+    created_at TEXT,
+    FOREIGN KEY (student_id) REFERENCES Students(student_id)
+);
+''')
+
+# Bảng Lịch Sử Ra Vào
+cursor.execute('''
+CREATE TABLE IF NOT EXISTS Attendance_History (
+    history_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    student_id INTEGER,
+    entry_time TEXT,
+    exit_time TEXT,
+    status TEXT,
+    action_timestamp TEXT,
+    action_type TEXT,
+    FOREIGN KEY (student_id) REFERENCES Students(student_id)
+);
+''')
+
+conn.commit()
+conn.close()
+
+print("OK!")
