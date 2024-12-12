@@ -28,6 +28,10 @@ This project implements a student attendance system using face recognition techn
     ```bash
     python src/video_capture.py
     ```
+5. Setting labrary:
+    ```pip install fastapi uvicorn keras tensorflow opencv-python-headless```
+6. Run server FastAPI:
+    ``` uvicorn api:app --reload```
 
  Conclusion
 
