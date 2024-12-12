@@ -2,13 +2,13 @@
 
  Description
 
-This project implements a student attendance system using face recognition technology. The system uses Cascade Classifier for detecting faces in real-time video streams and FaceNet for recognizing and verifying the identity of students. The FaceNet model is trained using data augmentation techniques to improve accuracy in real-world scenarios.
+This project implements a student attendance system using face recognition technology. The system uses Cascade Classifier for detecting faces in real-time video streams and FaceNet for recognizing and verifying the identity of students. The MobileNetV2 model is trained using data augmentation techniques to improve accuracy in real-world scenarios.
 
  Key Features
 
 - Face Detection using Cascade Classifier (Haar Cascade) to detect faces in live video streams.
-- Face Recognition to match detected faces with a student database using FaceNet.
-- Data Augmentation techniques during FaceNet model training, including rotation, brightness adjustment, flipping, etc.
+- Face Recognition to match detected faces with a student database using MobileNetV2.
+- Data Augmentation techniques during MobileNetV2 model training, including rotation, brightness adjustment, flipping, etc.
 - Real-time Attendance by recognizing faces and marking attendance.
 
  Installation
