@@ -1,4 +1,3 @@
-# face_recognition.py
 import cv2
 import numpy as np
 from tensorflow import load_model
@@ -6,6 +5,7 @@ from config import FACENET_MODEL_PATH
 
 # Load the FaceNet model for face recognition
 facenet_model = load_model(FACENET_MODEL_PATH)
+
 
 def encode_face(face_image):
     """Encode a face into a vector using FaceNet."""
@@ -15,6 +15,7 @@ def encode_face(face_image):
     face_image = face_image / 255.0  # Normalize the image
     encoding = facenet_model.predict(face_image)
     return encoding
+
 
 def recognize_face(face_encoding, known_encodings, known_names):
     """Match the face encoding with known encodings to identify the student."""

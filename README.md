@@ -32,3 +32,7 @@ This project implements a student attendance system using face recognition techn
  Conclusion
 
 This project leverages face recognition technology for efficient and accurate student attendance. With real-time face detection and recognition using Cascade Classifier and FaceNet, the system provides an effective solution for modern classrooms.
+
+* The orther:
+ - Model recognition: ```models/final_model/final_model.h5```
+

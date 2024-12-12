@@ -1,3 +1,9 @@
+<<<<<<< HEAD
 opencv-python
 tensorflow
 numpy
+=======
+opencv-python
+tensorflow
+numpy
+>>>>>>> 57267d1e (Update)

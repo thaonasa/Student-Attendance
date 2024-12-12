@@ -201,3 +201,4 @@ class FaceNet:
         frame = self.draw(frame, face_crops)
 
         return frame
+
