@@ -69,4 +69,3 @@ if __name__ == "__main__":
         input_dir="data/Original Images",
         output_dir="data/Output"          # Directory to save cropped faces
     )
-
