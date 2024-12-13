@@ -14,6 +14,7 @@ This project implements a student attendance system using face recognition techn
  Installation
 
 1. Clone this repository.
+
 2. Install required dependencies:
     ```bash
     pip install -r requirements.txt
@@ -23,7 +24,7 @@ This project implements a student attendance system using face recognition techn
     ```bash
     python src/train_model.py
     ```
-
+    
 4. Run the system:
     ```bash
     python src/video_capture.py
