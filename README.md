@@ -30,6 +30,7 @@ This project implements a student attendance system using face recognition techn
     ```
 5. Setting labrary:
     ```pip install fastapi uvicorn keras tensorflow opencv-python-headless```
+
 6. Run server FastAPI:
     ``` uvicorn api:app --reload```
 
@@ -37,5 +38,4 @@ This project implements a student attendance system using face recognition techn
 
 This project leverages face recognition technology for efficient and accurate student attendance. With real-time face detection and recognition using Cascade Classifier and MobileNetV2, the system provides an effective solution for modern classrooms.
 
-* The orther:
- - Model recognition: ```models/final_model/final_model.h5```
+- Model recognition: ```models/final_model/final_model.h5```
