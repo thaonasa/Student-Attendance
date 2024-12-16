@@ -40,3 +40,5 @@ This project implements a student attendance system using face recognition techn
 This project leverages face recognition technology for efficient and accurate student attendance. With real-time face detection and recognition using Cascade Classifier and MobileNetV2, the system provides an effective solution for modern classrooms.
 
 - Model recognition: ```models/final_model/final_model.h5```
+- Cuda: 11.2
+- TensorFlow version: 2.10.1 
