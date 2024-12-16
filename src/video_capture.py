@@ -1,116 +1,91 @@
-
+from config import VIDEO_SOURCE
+from face_detection import detect_faces, load_haar_cascade
+from face_recognition import recognize_face, save_unknown_face, add_new_student
 import cv2
-from face_detection import detect_faces
-from face_recognition import encode_face, recognize_face
-from connect_database import DatabaseConnection
-from datetime import datetime
-from config import VIDEO_SOURCE, CASCADE_PATH
+import sys
+import os
+
+# Thêm đường dẫn gốc dự án vào sys.path
+project_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
 
 
-def start_video_capture(video_source=VIDEO_SOURCE):
+def display_faces(frame, faces):
     """
-    Start video capture from the given video source.
+    Phát hiện và nhận diện khuôn mặt, sau đó hiển thị thông tin lên khung hình.
+    :param frame: Khung hình từ video.
+    :param faces: Danh sách tọa độ khuôn mặt.
     """
-    cap = cv2.VideoCapture(video_source)
-    if not cap.isOpened():
-        print("Error: Could not open video stream.")
-        return None
-    print("Video capture started.")
-    return cap
+    for (x, y, w, h) in faces:
+        cropped_face = frame[y:y+h, x:x+w]  # Cắt khuôn mặt từ frame
+
+        # Gọi hàm nhận diện khuôn mặt
+        student_id, confidence = recognize_face(cropped_face)
+
+        # Xử lý khuôn mặt chưa nhận diện
+        if not student_id:
+            print("Unknown face detected.")
+            image_path = save_unknown_face(
+                cropped_face)  # Lưu ảnh chưa nhận diện
+            add_new_student(image_path)  # Yêu cầu nhập thông tin và lưu vào DB
+            student_id = "New Student"  # Tạm thời hiển thị nhãn này
+            confidence = 0.0
+
+        # Xác định màu sắc và nhãn hiển thị
+        color = (0, 255, 0) if student_id != "Unknown" else (0, 0, 255)
+        label = f"ID: {student_id} ({confidence:.2f})"
+        cv2.rectangle(frame, (x, y), (x+w, y+h), color, 2)
+        cv2.putText(frame, label, (x, y-10),
+                    cv2.FONT_HERSHEY_SIMPLEX, 0.6, color, 2)
 
 
-def capture_frame(cap):
+def capture_video(video_source=VIDEO_SOURCE):
     """
-    Capture a frame from the webcam feed.
-    """
-    ret, frame = cap.read()
-    if not ret:
-        print("Error: Could not capture frame.")
-        return None
-    return frame
-
-
-def stop_video_capture(cap):
-    """
-    Stop the video capture.
-    """
-    if cap:
-        cap.release()
-    cv2.destroyAllWindows()
-    print("Video capture stopped.")
-
-
-def mark_attendance(db, student_id):
-    """
-    Mark attendance for the given student in the database.
+    Quản lý luồng video từ webcam hoặc file video.
     """
     try:
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        status = "Present"
+        # Load Haar cascade để phát hiện khuôn mặt
+        face_cascade = load_haar_cascade()
 
-        db.cursor.execute(
-            "INSERT INTO Attendance (student_id, status, created_at) VALUES (?, ?, ?)",
-            (student_id, status, timestamp)
-        )
-        db.connection.commit()
-        print(f"Attendance marked for Student ID: {student_id}")
-    except Exception as e:
-        print(f"Error marking attendance: {e}")
+        # Mở video
+        cap = cv2.VideoCapture(video_source)
+        if not cap.isOpened():
+            raise Exception(f"Cannot open video source: {video_source}")
 
+        print("Press 'q' to quit the video stream...")
 
-def process_video():
-    """
-    Process the video feed to detect and recognize faces, then mark attendance.
-    """
-    # Connect to the database
-    db = DatabaseConnection()
-    db.connect()
-
-    # Start video capture
-    cap = start_video_capture()
-    if not cap:
-        return
-
-    try:
         while True:
-            # Capture a frame
-            frame = capture_frame(cap)
-            if frame is None:
+            ret, frame = cap.read()
+            if not ret:
+                print("Error: Cannot read frame.")
                 break
 
-            # Detect faces in the frame
-            faces = detect_faces(frame, CASCADE_PATH)
+            # Phát hiện khuôn mặt trong frame
+            faces = detect_faces(frame, face_cascade)
 
-            for (x, y, w, h) in faces:
-                # Draw a rectangle around the face
-                cv2.rectangle(frame, (x, y), (x + w, y + h), (255, 0, 0), 2)
+            # Nhận diện và hiển thị khuôn mặt
+            if len(faces) > 0:
+                display_faces(frame, faces)
 
-                # Extract the face region
-                face_region = frame[y:y+h, x:x+w]
+            # Hiển thị video
+            cv2.imshow("Real-Time Face Detection and Recognition", frame)
 
-                # Encode and recognize the face
-                face_encoding = encode_face(face_region)
-                student_id = recognize_face(face_encoding)
-
-                if student_id:
-                    mark_attendance(db, student_id)
-                    # Display the student ID on the video feed
-                    cv2.putText(frame, f"ID: {student_id}", (x, y - 10),
-                                cv2.FONT_HERSHEY_SIMPLEX, 0.8, (0, 255, 0), 2)
-
-            # Show the video feed with detections
-            cv2.imshow("Video Feed", frame)
-
-            # Break the loop if 'q' is pressed
+            # Thoát khi nhấn 'q'
             if cv2.waitKey(1) & 0xFF == ord('q'):
+                print("Exiting video capture...")
                 break
+
+        cap.release()
+        cv2.destroyAllWindows()
+
     except Exception as e:
-        print(f"Error processing video: {e}")
-    finally:
-        # Stop video capture and close database connection
-        stop_video_capture(cap)
-        db.close()
+        print(f"Error: {e}")
+        if 'cap' in locals():
+            cap.release()
+        cv2.destroyAllWindows()
 
 
 if __name__ == "__main__":
-    process_video()
+    print("Starting Real-Time Face Detection and Recognition...")
+    capture_video()
