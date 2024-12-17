@@ -53,28 +53,30 @@ def recognize_face(cropped_face):
     """
     Nhận diện khuôn mặt bằng cách so sánh vector nhúng với cơ sở dữ liệu.
     :param cropped_face: Ảnh khuôn mặt đã cắt (numpy array).
-    :return: student_id hoặc None
+    :return: (student_id, similarity) hoặc (None, 0.0)
     """
     db = DatabaseConnection()
     db.connect()
 
-    # Tạo vector nhúng cho khuôn mặt
-    face_embedding = generate_face_embedding(cropped_face)
+    try:
+        # Tạo vector nhúng cho khuôn mặt
+        face_embedding = generate_face_embedding(cropped_face)
 
-    # Lấy tất cả vector nhúng từ cơ sở dữ liệu
-    embeddings = db.get_all_embeddings()
-    best_match = None
-    max_similarity = 0.0
+        # Lấy tất cả vector nhúng từ cơ sở dữ liệu
+        embeddings = db.get_all_embeddings()
+        best_match = None
+        max_similarity = 0.0
 
-    for student_id, db_embedding in embeddings:
-        db_vector = np.frombuffer(db_embedding, dtype=np.float32)
-        similarity = cosine_similarity(face_embedding, db_vector)
-        if similarity > max_similarity and similarity > 0.8:  # Ngưỡng tương đồng
-            best_match = student_id
-            max_similarity = similarity
+        for student_id, db_embedding in embeddings:
+            db_vector = np.frombuffer(db_embedding, dtype=np.float32)
+            similarity = cosine_similarity(face_embedding, db_vector)
+            if similarity > max_similarity and similarity > 0.8:  # Ngưỡng tương đồng
+                best_match = student_id
+                max_similarity = similarity
 
-    db.close()
-    return best_match, max_similarity
+        return best_match, max_similarity
+    finally:
+        db.close()
 
 
 def save_unknown_face(cropped_face):
@@ -162,20 +164,20 @@ def main():
 
         for (x, y, w, h) in faces:
             cropped_face = frame[y:y+h, x:x+w]
-            student_id = recognize_face(cropped_face, db)
+            student_id, similarity = recognize_face(cropped_face)  # Đã sửa lại cách gọi hàm
 
             # Vẽ bounding box và ID sinh viên
             if student_id:
-                db.mark_attendance(student_id, "Present")  # Ghi nhận điểm danh
+                log_attendance(student_id)  # Ghi nhận điểm danh
                 color = (0, 255, 0)
-                label = f"ID: {student_id}"
+                label = f"ID: {student_id} ({similarity:.2f})"
             else:
                 color = (0, 0, 255)
                 label = "Unknown"
 
             cv2.rectangle(frame, (x, y), (x+w, y+h), color, 2)
             cv2.putText(frame, label, (x, y-10),
-                        cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
+                       cv2.FONT_HERSHEY_SIMPLEX, 0.5, color, 2)
 
         # Hiển thị video
         cv2.imshow("Face Recognition and Attendance", frame)
