@@ -1,9 +1,13 @@
+import sys
 import cv2
 import os
 import numpy as np
 from keras.models import load_model
 from face_detection import detect_faces, load_haar_cascade
 from connect_database.connect_db import DatabaseConnection
+
+BASE_DIR = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+sys.path.append(BASE_DIR)
 
 # Đường dẫn lưu ảnh chưa nhận diện
 UNKNOWN_FACE_DIR = "data/unknown_faces/"

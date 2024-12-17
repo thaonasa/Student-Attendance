@@ -4,11 +4,11 @@ import cv2
 import sys
 import os
 
-# Thêm đường dẫn gốc của dự án vào sys.path
-project_root = os.path.abspath(os.path.join(
-    os.path.dirname(__file__), "..", ".."))
-if project_root not in sys.path:
-    sys.path.insert(0, project_root)
+# # Thêm đường dẫn gốc của dự án vào sys.path
+# project_root = os.path.abspath(os.path.join(
+#     os.path.dirname(__file__), "..", ".."))
+# if project_root not in sys.path:
+#     sys.path.insert(0, project_root)
 
 # Tránh vòng lặp, đảm bảo chỉ import những gì cần thiết
 

@@ -8,8 +8,6 @@ DATABASE_PATH = "student_attendance.db"
 class DatabaseConnection:
     def __init__(self, db_name=DATABASE_PATH):
         self.db_name = db_name
-        self.connection = None
-        self.cursor = None
 
     def connect(self):
         """Kết nối đến cơ sở dữ liệu SQLite."""
