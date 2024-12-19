@@ -1,3 +1,4 @@
+import pytz
 import streamlit as st
 import cv2
 import numpy as np
@@ -89,6 +90,8 @@ def add_student_page():
     # Form nhập thông tin sinh viên
     with st.form("student_form"):
         uploaded_file = st.file_uploader("Tải lên ảnh sinh viên", type=['jpg', 'jpeg', 'png'])
+        if uploaded_file:
+            st.image(uploaded_file, caption="Ảnh đã tải lên")
         
         # Validation cho họ tên
         full_name = st.text_input(
@@ -123,7 +126,7 @@ def add_student_page():
         
         # Validation cho số điện thoại
         phone_number = st.text_input(
-            "Số điện thoại",
+            "Số điện tho���i",
             help="Số điện thoại phải có 10 chữ số và bắt đầu bằng 0"
         )
         
@@ -168,13 +171,33 @@ def add_student_page():
                 # Chuyển đổi date_input sang string format YYYY-MM-DD
                 date_str = date_of_birth.strftime("%Y-%m-%d")
                 
-                db.add_student(
-                    full_name, date_str, gender,
-                    class_id, email, phone_number,
-                    temp_image_path
-                )
-                
-                st.success("Đã thêm sinh viên thành công!")
+                # Tạo face embedding từ ảnh
+                face_img = cv2.imread(temp_image_path)
+                if face_img is not None:
+                    face_cascade = load_haar_cascade()
+                    faces = detect_faces(face_img, face_cascade)
+                    
+                    if len(faces) > 0:
+                        x, y, w, h = faces[0]  # Lấy khuôn mặt đầu tiên
+                        cropped_face = face_img[y:y+h, x:x+w]
+                        embedding = generate_face_embedding(cropped_face)
+                        
+                        # Thêm sinh viên vào database
+                        db.add_student(
+                            full_name, date_str, gender,
+                            class_id, email, phone_number,
+                            temp_image_path
+                        )
+                        
+                        # Lấy ID sinh viên vừa thêm và lưu embedding
+                        student_id = db.cursor.lastrowid
+                        db.add_face_embedding(student_id, embedding)
+                        
+                        st.success("Đã thêm sinh viên thành công!")
+                    else:
+                        st.error("Không tìm thấy khuôn mặt trong ảnh!")
+                else:
+                    st.error("Không thể đọc file ảnh!")
                 
             except Exception as e:
                 st.error(f"Lỗi khi thêm sinh viên: {str(e)}")
@@ -261,7 +284,7 @@ def view_attendance_page():
         with col1:
             selected_class = st.selectbox("Chọn lớp:", ["Tất cả"] + classes)
         with col2:
-            selected_date = st.date_input("Chọn ngày:", datetime.now())
+            selected_date = st.date_input("Chọn ngày:", datetime.now().astimezone(pytz.timezone('Asia/Ho_Chi_Minh')))
         
         # Query điểm danh
         if selected_class == "Tất cả":

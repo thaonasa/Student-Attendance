@@ -1,3 +1,4 @@
+from datetime import datetime
 import cv2
 import os
 import numpy as np
@@ -34,11 +35,13 @@ def log_attendance(student_id):
     db = DatabaseConnection()
     db.connect()
     try:
+        # Get current time in local timezone
+        local_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
         query = '''
             INSERT INTO Attendance (student_id, status, created_at)
-            VALUES (?, 'Present', datetime('now'))
+            VALUES (?, 'Present', ?)
         '''
-        db.cursor.execute(query, (student_id,))
+        db.cursor.execute(query, (student_id, local_time))
         db.connection.commit()
         print(f"Attendance logged for student ID: {student_id}")
     except Exception as e:
