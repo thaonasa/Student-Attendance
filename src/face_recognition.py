@@ -32,20 +32,26 @@ def cosine_similarity(vector1, vector2):
 
 
 def log_attendance(student_id):
-    db = DatabaseConnection()
-    db.connect()
+    """
+    Ghi nhận điểm danh cho sinh viên.
+    Sử dụng hàm mark_attendance từ DatabaseConnection để xử lý logic điểm danh.
+    """
     try:
-        # Get current time in local timezone
-        local_time = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
-        query = '''
-            INSERT INTO Attendance (student_id, status, created_at)
-            VALUES (?, 'Present', ?)
-        '''
-        db.cursor.execute(query, (student_id, local_time))
-        db.connection.commit()
-        print(f"Attendance logged for student ID: {student_id}")
+        db = DatabaseConnection()
+        db.connect()
+        
+        # Sử dụng hàm mark_attendance đã được cập nhật
+        success = db.mark_attendance(student_id)
+        
+        if success:
+            print(f"Attendance logged successfully for student ID: {student_id}")
+        else:
+            print(f"Failed to log attendance for student ID: {student_id}")
+            
+        return success
     except Exception as e:
-        print(f"Error logging attendance: {e}")
+        print(f"Error logging attendance: {str(e)}")
+        return False
     finally:
         db.close()
 
