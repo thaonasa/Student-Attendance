@@ -78,6 +78,44 @@ def attendance_page():
             st.session_state.camera_running = False
         
         if start:
+            # Đặt trạng thái absent cho tất cả sinh viên trong lớp
+            current_date = datetime.now().strftime("%Y-%m-%d")
+            current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            
+            # Lấy danh sách sinh viên trong lớp
+            db.cursor.execute(
+                "SELECT student_id FROM Students WHERE class_id = ?",
+                (selected_class,)
+            )
+            students = db.cursor.fetchall()
+            
+            # Đặt trạng thái absent cho từng sinh viên
+            for student in students:
+                # Kiểm tra xem sinh viên đã có điểm danh hôm nay chưa
+                db.cursor.execute('''
+                    SELECT attendance_id FROM Attendance 
+                    WHERE student_id = ? AND DATE(created_at) = ?
+                ''', (student[0], current_date))
+                
+                existing_record = db.cursor.fetchone()
+                
+                if existing_record:
+                    # Nếu đã có record, cập nhật thành absent
+                    db.cursor.execute('''
+                        UPDATE Attendance 
+                        SET status = 'absent', created_at = ?
+                        WHERE attendance_id = ?
+                    ''', (current_time, existing_record[0]))
+                else:
+                    # Nếu chưa có record, tạo mới với status absent
+                    db.cursor.execute('''
+                        INSERT INTO Attendance (student_id, status, created_at)
+                        VALUES (?, 'absent', ?)
+                    ''', (student[0], current_time))
+            
+            db.connection.commit()
+            st.success(f"Đã đặt trạng thái absent cho tất cả sinh viên lớp {selected_class}")
+            
             st.session_state.camera_running = True
             cap = cv2.VideoCapture(0)
             
@@ -108,7 +146,7 @@ def attendance_page():
                             student_name = student_info[1]
                             # Loại bỏ dấu trong tên hiển thị
                             label = f"{student_name} - {similarity:.2f}"
-                            log_attendance(student_id)
+                            log_attendance(student_id, "present")  # Cập nhật trạng thái thành present
                             info_placeholder.success(f"Da diem danh: {student_name} - Lop {student_class}")
                         else:
                             # Sinh viên không thuộc lớp đang điểm danh
@@ -150,7 +188,11 @@ def attendance_page():
         
         if attendance_records:
             for record in attendance_records:
-                st.write(f"- {record[0]}: {record[1]} ({record[2]})")
+                status_color = "green" if record[1] == "present" else "red"
+                st.markdown(
+                    f"- {record[0]}: <span style='color: {status_color}'>{record[1]}</span> ({record[2]})",
+                    unsafe_allow_html=True
+                )
         else:
             st.info(f"Chưa có sinh viên lớp {selected_class} điểm danh hôm nay")
             

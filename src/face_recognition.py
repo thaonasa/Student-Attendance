@@ -31,29 +31,22 @@ def cosine_similarity(vector1, vector2):
     return np.dot(vector1, vector2) / (np.linalg.norm(vector1) * np.linalg.norm(vector2))
 
 
-def log_attendance(student_id):
+def log_attendance(student_id, status="present"):
     """
-    Ghi nhận điểm danh cho sinh viên.
-    Sử dụng hàm mark_attendance từ DatabaseConnection để xử lý logic điểm danh.
+    Ghi nhận điểm danh cho sinh viên với trạng thái được chỉ định.
+    Args:
+        student_id: ID của sinh viên
+        status: Trạng thái điểm danh (mặc định là "present")
     """
     try:
         db = DatabaseConnection()
         db.connect()
-        
-        # Sử dụng hàm mark_attendance đã được cập nhật
-        success = db.mark_attendance(student_id)
-        
-        if success:
-            print(f"Attendance logged successfully for student ID: {student_id}")
-        else:
-            print(f"Failed to log attendance for student ID: {student_id}")
-            
-        return success
+        db.mark_attendance(student_id, status)
+        db.close()
+        return True
     except Exception as e:
         print(f"Error logging attendance: {str(e)}")
         return False
-    finally:
-        db.close()
 
 # Nhận diện khuôn mặt bằng cách so sánh vector nhúng
 
